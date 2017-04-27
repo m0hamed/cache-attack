@@ -5,9 +5,9 @@
 #include "haswell.h"
 #include <sys/mman.h>
 #include <vector>
-#include "matplotlibcpp.h"
+#include <iostream>
+#include <fstream>
 
-namespace plt = matplotlibcpp;
 using namespace std;
 
 void ptr2bin(void* ptr, char bin[65]) {
@@ -474,6 +474,17 @@ unsigned long int get_global_timestamp_stop(void) {
 	return ((unsigned long int)cycles_high_stop << 32) | cycles_low_stop;
 }
 
+template<typename T>
+void outputCSV(vector<T> v, char* filename, ios_base::openmode mode) {
+  ofstream file;
+  file.open(filename, mode);
+  for(auto e:v) {
+    file << e << ",";
+  }
+  file << endl;
+  file.close();
+}
+
 int main(int argc, char* argv[]) {
   uintptr_t m1, m2;
   printf("Please enter the first line to monitor:\n");
@@ -506,4 +517,6 @@ int main(int argc, char* argv[]) {
     //t2.push_back(p2_time_reverse);
     //printf("%lu\n", p1_time); //return 0;
   }
+  outputCSV(t1, "data.csv", ios::trunc);
+  outputCSV(t2, "data.csv", ios::app);
 }
