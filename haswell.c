@@ -481,8 +481,8 @@ int main(int argc, char* argv[]) {
   printf("Please enter the second line to monitor:\n");
   //scanf("%lx", &m2);
   uint64_t a,b;
-  m1 = &a;
-  m2 = &b;
+  m1 = (uintptr_t) &a;
+  m2 = (uintptr_t) &b;
   Node *s1, *s2;
   if (!haswell_i7_4600m_setup(m1, &s1)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
