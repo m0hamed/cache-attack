@@ -513,12 +513,12 @@ int main(int argc, char* argv[]) {
     t1.push_back(p1_time);
     p2_time = haswell_i7_4600m_probe(s2);
     t2.push_back(p2_time);
-    //p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
-    //t1.push_back(p1_time_reverse);
-    //p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
-    //t2.push_back(p2_time_reverse);
+    p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
+    t1.push_back(p1_time_reverse);
+    p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
+    t2.push_back(p2_time_reverse);
     //printf("%lu\n", p1_time); //return 0;
   }
   outputCSVLine("t1", t1, "data.csv", ios::trunc);
-  outputCSVLine("t1", t2, "data.csv", ios::app);
+  outputCSVLine("t2", t2, "data.csv", ios::app);
 }
