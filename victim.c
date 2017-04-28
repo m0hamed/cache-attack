@@ -125,6 +125,8 @@ inline void busyWait(uint64_t wait) {
 void continousAccess(TYPE_PTR l1, TYPE_PTR l0, uint64_t tMark, uint64_t tPause,
     bool* D, int dLength) {
   for (int i=0; i<dLength; i++) {
+    __asm volatile ("movb %0, %%cl" : :"m"(*l1));
+    continue;
     if(D[i]) {
       uint64_t start = getTime();
       while (!checkElapsed(start, tMark)) {
@@ -146,8 +148,8 @@ int BUFFER_SIZE = 3*1024*1024;
 bool* getMessage(int size) {
   bool* message = (bool*) malloc(size*sizeof(bool));
   for (int i=0; i<size; i++) {
-    message[i] = i%2==0;
-    //message[i] = false;
+    //message[i] = i%2==0;
+    message[i] = false;
   }
   return message;
 }
