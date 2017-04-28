@@ -508,7 +508,7 @@ int main(int argc, char* argv[]) {
   haswell_i7_4600m_reprime(); //return 0;
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
-  REPEAT_FOR(1000*1000*100) {
+  REPEAT_FOR(1000*1000*1000) {
     p1_time = haswell_i7_4600m_probe(s1);
     t1.push_back(p1_time);
     p2_time = haswell_i7_4600m_probe(s2);

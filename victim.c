@@ -183,7 +183,7 @@ int main() {
   printf("\n%016" PRIXPTR " : \n", vtop(l0));
   printf("\n%016" PRIXPTR " : \n", vtop(l1));
   while (true) {
-    continousAccess(l0,l1, 100000, 100000, D, MESSAGE_SIZE);
+    continousAccess(l0,l1, 100000, 100, D, MESSAGE_SIZE);
   }
   //auto es = getEvictionSet(pc);
   cout << "next set index" << endl;
