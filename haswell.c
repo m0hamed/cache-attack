@@ -68,7 +68,7 @@ int haswell_i7_4600m_cache_slice_alg(uintptr_t i_addr) {
     // Xeon & Core (4 core - from bit 17 and above)
     int bit0 = ((i_addr & 0x000020000) >> 17) ^ ((i_addr & 0x000040000) >> 18) ^ ((i_addr & 0x000100000) >> 20) ^ ((i_addr & 0x000400000) >> 22)
              ^ ((i_addr & 0x001000000) >> 24) ^ ((i_addr & 0x002000000) >> 25) ^ ((i_addr & 0x004000000) >> 26) ^ ((i_addr & 0x008000000) >> 27)
-             ^ ((i_addr & 0x010000000) >> 28) ^ ((i_addr & 0x040000000) >> 30) ^ ((i_addr & 0x100000000) >> 32) ^ ((i_addr & 0x200000000) >> 33);
+             ^ ((i_addr & 0x010000000) >> 28) ^ ((i_addr & 0x040000000) >> 30) ^ ((i_addr & 0x100000000) >> 32);// ^ ((i_addr & 0x200000000) >> 33);
 
     return bit0;
 }
@@ -517,7 +517,6 @@ int main(int argc, char* argv[]) {
     t1.push_back(p1_time_reverse);
     p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
     t2.push_back(p2_time_reverse);
-    //printf("%lu\n", p1_time); //return 0;
   }
   outputCSVLine("t1", t1, "data.csv", ios::trunc);
   outputCSVLine("t2", t2, "data.csv", ios::app);
