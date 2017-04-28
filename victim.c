@@ -42,21 +42,15 @@ uintptr_t vtop(uintptr_t vaddr) {
         if (lseek(fileno(pagemap), offset, SEEK_SET) == offset) {
             if (fread(&e, sizeof(uint64_t), 1, pagemap)) {
                 if (e & (1ULL << 63)) { // page present ?
-                    printf("e %lx\n", e);
                     paddr = e & ((1ULL << 54) - 1); // pfn mask
-                    printf("%lx\n", paddr);
                     paddr = paddr * sysconf(_SC_PAGESIZE);
-                    printf("%lx\n", paddr);
                     // add offset within page
                     paddr = paddr | (vaddr & (sysconf(_SC_PAGESIZE) - 1));
-                    printf("%lx\n", paddr);
                 }
             }
         }
         fclose(pagemap);
     }
-    printf("%lx\n", vaddr);
-    printf("%lx\n", paddr);
 
     return paddr;
 }
@@ -217,8 +211,8 @@ int main() {
   uint16_t s0 = SET_INDEX(ADDRESS((uintptr_t)x+0x900));
   uint16_t s1 = SET_INDEX(ADDRESS((uintptr_t)x+0x1000));
   getLines(s0, s1, x, BUFFER_SIZE*sizeof(TYPE), &l0, &l1);
-  printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l0));
   printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l1));
+  printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l0));
   while (true) {
     continousAccess(l0,l1, 100000, 100, D, MESSAGE_SIZE);
   }
