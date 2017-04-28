@@ -475,11 +475,13 @@ unsigned long int get_global_timestamp_stop(void) {
 }
 
 template<typename T>
-void outputCSV(vector<T> v, char* filename, ios_base::openmode mode) {
+void outputCSVLine(const char* label, vector<T> v, const char* filename,
+    ios_base::openmode mode) {
   ofstream file;
   file.open(filename, mode);
+  file << label;
   for(auto e:v) {
-    file << e << ",";
+    file << "," << e;
   }
   file << endl;
   file.close();
@@ -506,7 +508,7 @@ int main(int argc, char* argv[]) {
   haswell_i7_4600m_reprime(); //return 0;
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
-  REPEAT_FOR(1000*1000) {
+  REPEAT_FOR(1000*1000*100) {
     p1_time = haswell_i7_4600m_probe(s1);
     t1.push_back(p1_time);
     p2_time = haswell_i7_4600m_probe(s2);
@@ -517,6 +519,6 @@ int main(int argc, char* argv[]) {
     //t2.push_back(p2_time_reverse);
     //printf("%lu\n", p1_time); //return 0;
   }
-  outputCSV(t1, "data.csv", ios::trunc);
-  outputCSV(t2, "data.csv", ios::app);
+  outputCSVLine("t1", t1, "data.csv", ios::trunc);
+  outputCSVLine("t1", t2, "data.csv", ios::app);
 }
