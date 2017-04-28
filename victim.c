@@ -175,6 +175,9 @@ int main() {
   bool* D = getMessage(MESSAGE_SIZE);
   TYPE_PTR x = (TYPE_PTR) mmap(START_ADDR, BUFFER_SIZE*sizeof(TYPE), PROTECTION,
       FLAGS, 0, 0);
+  for (int i=0; i<BUFFER_SIZE*sizeof(TYPE); i++) {
+    *(x+i) = i%255;
+  }
   TYPE_PTR l0;
   TYPE_PTR l1;
   uint16_t s0 = SET_INDEX(ADDRESS((uintptr_t)x+0x900));
