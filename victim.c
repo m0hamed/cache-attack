@@ -31,6 +31,30 @@ int myrandom (int i) {
   return uniform_int_distribution<int>(0,i-1)(engine);
 }
 
+uintptr_t vtop(uintptr_t vaddr) {
+    FILE *pagemap;
+    intptr_t paddr = 0;
+    uint64_t offset = (vaddr / sysconf(_SC_PAGESIZE)) * sizeof(uint64_t);
+    uint64_t e;
+
+    // https://www.kernel.org/doc/Documentation/vm/pagemap.txt
+    if ((pagemap = fopen("/proc/self/pagemap", "r"))) {
+        if (lseek(fileno(pagemap), offset, SEEK_SET) == offset) {
+            if (fread(&e, sizeof(uint64_t), 1, pagemap)) {
+                if (e & (1ULL << 63)) { // page present ?
+                    paddr = e & ((1ULL << 54) - 1); // pfn mask
+                    paddr = paddr * sysconf(_SC_PAGESIZE);
+                    // add offset within page
+                    paddr = paddr | (vaddr & (sysconf(_SC_PAGESIZE) - 1));
+                }
+            }
+        }
+        fclose(pagemap);
+    }
+
+    return paddr;
+}
+
 inline uint64_t atime(TYPE_PTR candidate) {
   uint64_t s, e;
   uint32_t sh, sl, eh, el;
@@ -104,13 +128,13 @@ void continousAccess(TYPE_PTR l1, TYPE_PTR l0, uint64_t tMark, uint64_t tPause,
     if(D[i]) {
       uint64_t start = getTime();
       while (!checkElapsed(start, tMark)) {
-        atime(l1);
+        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
       }
       busyWait(tPause);
     } else {
       uint64_t start = getTime();
       while (!checkElapsed(start, tMark)) {
-        atime(l0);
+        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
       }
       busyWait(tPause);
     }
@@ -156,8 +180,8 @@ int main() {
   uint16_t s0 = SET_INDEX(ADDRESS((uintptr_t)x+0x900));
   uint16_t s1 = SET_INDEX(ADDRESS((uintptr_t)x+0x1000));
   getLines(s0, s1, x, BUFFER_SIZE*sizeof(TYPE), &l0, &l1);
-  printf("\n%016" PRIXPTR " : \n", l0);
-  printf("\n%016" PRIXPTR " : \n", l1);
+  printf("\n%016" PRIXPTR " : \n", vtop(l0));
+  printf("\n%016" PRIXPTR " : \n", vtop(l1));
   while (true) {
     continousAccess(l0,l1, 100000, 100000, D, MESSAGE_SIZE);
   }
