@@ -42,21 +42,26 @@ uintptr_t vtop(uintptr_t vaddr) {
         if (lseek(fileno(pagemap), offset, SEEK_SET) == offset) {
             if (fread(&e, sizeof(uint64_t), 1, pagemap)) {
                 if (e & (1ULL << 63)) { // page present ?
+                    printf("e %lx\n", e);
                     paddr = e & ((1ULL << 54) - 1); // pfn mask
+                    printf("%lx\n", paddr);
                     paddr = paddr * sysconf(_SC_PAGESIZE);
+                    printf("%lx\n", paddr);
                     // add offset within page
                     paddr = paddr | (vaddr & (sysconf(_SC_PAGESIZE) - 1));
+                    printf("%lx\n", paddr);
                 }
             }
         }
         fclose(pagemap);
     }
+    printf("%lx\n", vaddr);
+    printf("%lx\n", paddr);
 
     return paddr;
 }
 
 inline uint64_t atime(TYPE_PTR candidate) {
-  uint64_t s, e;
   uint32_t sh, sl, eh, el;
   __asm volatile (".align 16\n\t"
       "lfence\n\t");
@@ -173,8 +178,8 @@ void getLines(uint16_t s0, uint16_t s1, TYPE_PTR buffer, int size,
 
 int main() {
   bool* D = getMessage(MESSAGE_SIZE);
-  TYPE_PTR x = (TYPE_PTR) mmap(START_ADDR, BUFFER_SIZE*sizeof(TYPE), PROTECTION,
-      FLAGS, 0, 0);
+  TYPE_PTR x = (TYPE_PTR) mmap(NULL, BUFFER_SIZE*sizeof(TYPE),
+      PROTECTION, FLAGS, 0, 0);
   for (int i=0; i<BUFFER_SIZE*sizeof(TYPE); i++) {
     *(x+i) = i%255;
   }
