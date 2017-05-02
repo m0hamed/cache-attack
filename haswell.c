@@ -505,7 +505,8 @@ int main(int argc, char* argv[]) {
       return 0;
   }
   haswell_i7_4600m_prime(s1->p); //return 0;
-  haswell_i7_4600m_reprime(); //return 0;
+  haswell_i7_4600m_prime(s2->p); //return 0;
+  //haswell_i7_4600m_reprime(); //return 0;
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
   REPEAT_FOR(1000ULL*1000*1000) {
