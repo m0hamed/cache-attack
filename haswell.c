@@ -533,12 +533,12 @@ int main(int argc, char* argv[]) {
     //t1.push_back(p1_time);
 
     haswell_i7_4600m_prime(s1->p);
-    //haswell_i7_4600m_reprime(reprime_s1);
+    haswell_i7_4600m_reprime(reprime_s1);
     p1_time_reverse = haswell_i7_4600m_reverse_probe(s1->backward);
     t1.push_back(p1_time_reverse);
 
     haswell_i7_4600m_prime(s2->p);
-    //haswell_i7_4600m_reprime(reprime_s2);
+    haswell_i7_4600m_reprime(reprime_s2);
     p2_time_reverse = haswell_i7_4600m_reverse_probe(s2->backward);
     t2.push_back(p2_time_reverse);
   }
