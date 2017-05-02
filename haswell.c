@@ -89,7 +89,6 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   //printf("cache line offset");
   //printPtr2bin((void *)cache_line_check_offset);
   size_t mem_length = (size_t)MB(2);
-  int i = 0;
   //int mem_length_char = ((int)mem_length/sizeof(char));
   //int mem_length_ptr = (int)mem_length/sizeof(void *);
 
@@ -136,7 +135,7 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
 
   //for (i = 0; i < 128; ++i) tmp[i] = NULL;
 
-  for (i = 0; i < 128; ++i) {
+  for (int i = 0; i < 128; ++i) {
       void * temp = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
       bool mapped = false;
       if (temp == MAP_FAILED) {
@@ -338,7 +337,7 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   return true;
 }
 
-void haswell_i7_4600m_prime(volatile char **tmp1) {
+inline void haswell_i7_4600m_prime(volatile char **tmp1) {
     //printf("ivybridge_i7_3770_prime\n");
     TIMESTAMP_START;
     TIMESTAMP_STOP;
@@ -363,7 +362,7 @@ void haswell_i7_4600m_prime(volatile char **tmp1) {
     tmp1 = (volatile char **)*tmp1;
 }
 
-void haswell_i7_4600m_reprime(volatile char **tmp1) {
+inline void haswell_i7_4600m_reprime(volatile char **tmp1) {
     //printf("haswell_i7_4600m_reprime\n");
     tmp1 = (volatile char **)*tmp1;
     tmp1 = (volatile char **)*tmp1;
@@ -383,7 +382,7 @@ void haswell_i7_4600m_reprime(volatile char **tmp1) {
     tmp1 = (volatile char **)*tmp1;
 }
 
-uint64_t haswell_i7_4600m_probe(Node* start) {
+inline uint64_t haswell_i7_4600m_probe(Node* start) {
     //printf("haswell_i7_4600m_probe\n");
     // PROBE & MEASURE
     uint64_t begin, end;
@@ -433,7 +432,7 @@ uint64_t haswell_i7_4600m_probe(Node* start) {
     return (end-begin);//-(end2-begin2);
 }
 
-uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
+inline uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     //printf("haswell_i7_4600m_probe\n");
     // PROBE & MEASURE
     uint64_t begin, end;
@@ -441,6 +440,9 @@ uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     //volatile char **tmp1 = init_prime_reverse;
     TIMESTAMP_START;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
@@ -477,11 +479,11 @@ uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     return (end-begin);//-(end2-begin2);
 }
 
-uint64_t get_global_timestamp_start(void) {
+inline uint64_t get_global_timestamp_start(void) {
 	return ((uint64_t)cycles_high_start << 32) | cycles_low_start;
 }
 
-uint64_t get_global_timestamp_stop(void) {
+inline uint64_t get_global_timestamp_stop(void) {
 	return ((uint64_t)cycles_high_stop << 32) | cycles_low_stop;
 }
 
@@ -511,22 +513,22 @@ int main(int argc, char* argv[]) {
   Node *s1, *s2;
   TYPE_PTR reprime_s1;
   TYPE_PTR reprime_s2;
-  if (!haswell_i7_4600m_setup(m2, &s2, &reprime_s2)) {
+  if (!haswell_i7_4600m_setup(m1, &s1, &reprime_s1)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
-  if (!haswell_i7_4600m_setup(m1, &s1, &reprime_s1)) {
+  if (!haswell_i7_4600m_setup(m2, &s2, &reprime_s2)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
   REPEAT_FOR(1000ULL*1000*1000) {
-    //p2_time = haswell_i7_4600m_probe(s2);
-    //t2.push_back(p2_time);
+    p2_time = haswell_i7_4600m_probe(s2);
+    t2.push_back(p2_time);
 
-    //p1_time = haswell_i7_4600m_probe(s1);
-    //t1.push_back(p1_time);
+    p1_time = haswell_i7_4600m_probe(s1);
+    t1.push_back(p1_time);
 
     haswell_i7_4600m_prime(s1->p);
     haswell_i7_4600m_reprime(reprime_s1);
@@ -538,6 +540,6 @@ int main(int argc, char* argv[]) {
     p2_time_reverse = haswell_i7_4600m_reverse_probe(s2->backward);
     t2.push_back(p2_time_reverse);
   }
-  outputCSVLine("t1", t1, argv[1], ios::trunc);
-  outputCSVLine("t2", t2, argv[1], ios::app);
+  outputCSVLine("s1", t1, argv[1], ios::trunc);
+  outputCSVLine("s2", t2, argv[1], ios::app);
 }
