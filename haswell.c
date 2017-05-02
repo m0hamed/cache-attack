@@ -82,246 +82,247 @@ int haswell_i7_4600m_cache_slice_from_virt(void* addr) {
 }
 // Ivy Bridge i7-3770 FUNCTIONS
 
-int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
-    //printf("haswell_i7_4600m_setup\n");
-    uint64_t cache_line_check_offset = monline & 0x00001FFFF;  // 0001 1111 1111 1111 1111
-    //printf("cache line offset");
-    //printPtr2bin((void *)cache_line_check_offset);
-    size_t mem_length = (size_t)MB(2);
-    int i = 0;
-    //int mem_length_char = ((int)mem_length/sizeof(char));
-    //int mem_length_ptr = (int)mem_length/sizeof(void *);
+int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
+      TYPE_PTR *init_prime) {
+  //printf("haswell_i7_4600m_setup\n");
+  uint64_t cache_line_check_offset = monline & 0x00001FFFF;  // 0001 1111 1111 1111 1111
+  //printf("cache line offset");
+  //printPtr2bin((void *)cache_line_check_offset);
+  size_t mem_length = (size_t)MB(2);
+  int i = 0;
+  //int mem_length_char = ((int)mem_length/sizeof(char));
+  //int mem_length_ptr = (int)mem_length/sizeof(void *);
 
 // Cache slice selection algorithm needs verification
 // p17 ⊕ p18 ⊕ p20 ⊕ p22 ⊕ p24 ⊕ p25 ⊕ p26 ⊕ p27 ⊕ p28 ⊕ p30 ⊕ p32
 // p18 ⊕ p19 ⊕ p21 ⊕ p23 ⊕ p25 ⊕ p27 ⊕ p29 ⊕ p30 ⊕ p31 ⊕ p32
 
-    int monline_cache_slice = haswell_i7_4600m_cache_slice_alg( monline);
-    //printf("monline_cache_slice\t:\t%d\n", monline_cache_slice);
+  int monline_cache_slice = haswell_i7_4600m_cache_slice_alg( monline);
+  //printf("monline_cache_slice\t:\t%d\n", monline_cache_slice);
 
-    void *tmp[128];
-    int B_idx = -1;
-    int C_idx = -1;
-    int D_idx = -1;
-    int E_idx = -1;
+  void *tmp[128];
+  int B_idx = -1;
+  int C_idx = -1;
+  int D_idx = -1;
+  int E_idx = -1;
 
-    int cache_slice_pattern[4][4];
+  int cache_slice_pattern[4][4];
 
-    cache_slice_pattern[0][0] = 0x0;
-    cache_slice_pattern[0][1] = 0x7;
-    cache_slice_pattern[0][2] = 0x9;
-    cache_slice_pattern[0][3] = 0xe;
+  cache_slice_pattern[0][0] = 0x0;
+  cache_slice_pattern[0][1] = 0x7;
+  cache_slice_pattern[0][2] = 0x9;
+  cache_slice_pattern[0][3] = 0xe;
 
-    cache_slice_pattern[1][0] = 0x1;
-    cache_slice_pattern[1][1] = 0x6;
-    cache_slice_pattern[1][2] = 0x8;
-    cache_slice_pattern[1][3] = 0xf;
+  cache_slice_pattern[1][0] = 0x1;
+  cache_slice_pattern[1][1] = 0x6;
+  cache_slice_pattern[1][2] = 0x8;
+  cache_slice_pattern[1][3] = 0xf;
 
-    cache_slice_pattern[2][0] = 0x2;
-    cache_slice_pattern[2][1] = 0x5;
-    cache_slice_pattern[2][2] = 0xb;
-    cache_slice_pattern[2][3] = 0xc;
+  cache_slice_pattern[2][0] = 0x2;
+  cache_slice_pattern[2][1] = 0x5;
+  cache_slice_pattern[2][2] = 0xb;
+  cache_slice_pattern[2][3] = 0xc;
 
-    cache_slice_pattern[3][0] = 0x3;
-    cache_slice_pattern[3][1] = 0x4;
-    cache_slice_pattern[3][2] = 0xa;
-    cache_slice_pattern[3][3] = 0xd;
-
-
-    for (i = 0; i < 128; ++i) tmp[i] = NULL;
-
-    for (i = 0; i < 128; ++i) {
-        tmp[i] = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-        if (tmp[i] == MAP_FAILED) {
-          return 0;
-        }
-        if (haswell_i7_4600m_cache_slice_from_virt(tmp[i]) == monline_cache_slice) {     //monline_cache_slice
-            if (B_idx == -1) {
-                B = (volatile char **)tmp[i];
-                B_idx = i;
-                continue;
-            }
-            if (C_idx == -1) {
-                C = (volatile char **)tmp[i];
-                C_idx = i;
-                continue;
-            }
-            if (D_idx == -1) {
-                D = (volatile char **)tmp[i];
-                D_idx = i;
-                continue;
-            }
-            if (E_idx == -1) {
-                E = (volatile char **)tmp[i];
-                E_idx = i;
-                break;
-            }
-        }
-    }
-
-    //printf("B_idx\t:\t%d\n", B_idx);
-    //printf("C_idx\t:\t%d\n", C_idx);
-    //printf("D_idx\t:\t%d\n", D_idx);
-    //printf("E_idx\t:\t%d\n", E_idx);
-
-    if (B_idx == -1 || C_idx == -1 || D_idx == -1 || E_idx == -1) return 0;
-
-    // THIS FOR LOOP NEEDS REVISION (is munmap((void *) addr, size_t length) relieasing the hugepage as expected?)
-    for (i = 0; i < 128; ++i) {
-        //printf("i\t:\t%d\n", i);
-        if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != NULL) {
-            munmap(tmp[i], MB(2));
-        }
-    }
+  cache_slice_pattern[3][0] = 0x3;
+  cache_slice_pattern[3][1] = 0x4;
+  cache_slice_pattern[3][2] = 0xa;
+  cache_slice_pattern[3][3] = 0xd;
 
 
+  for (i = 0; i < 128; ++i) tmp[i] = NULL;
 
-    //B = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-    //C = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+  for (i = 0; i < 128; ++i) {
+      tmp[i] = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+      if (tmp[i] == MAP_FAILED) {
+        return 0;
+      }
+      if (haswell_i7_4600m_cache_slice_from_virt(tmp[i]) == monline_cache_slice) {     //monline_cache_slice
+          if (B_idx == -1) {
+              B = (volatile char **)tmp[i];
+              B_idx = i;
+              continue;
+          }
+          if (C_idx == -1) {
+              C = (volatile char **)tmp[i];
+              C_idx = i;
+              continue;
+          }
+          if (D_idx == -1) {
+              D = (volatile char **)tmp[i];
+              D_idx = i;
+              continue;
+          }
+          if (E_idx == -1) {
+              E = (volatile char **)tmp[i];
+              E_idx = i;
+              break;
+          }
+      }
+  }
 
-    *start = (Node*) malloc(sizeof(Node));
-    (**start).p = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
-    Node *next = (Node*) malloc(sizeof(Node));
-    (**start).forward = next;
-    next->backward = *start;
-    next->p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    next->forward = (Node*) malloc(sizeof(Node));
-    next->forward->backward = next;
-    next = next->forward;
-    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    next->forward = *start;
-    (**start).backward = next;
+  //printf("B_idx\t:\t%d\n", B_idx);
+  //printf("C_idx\t:\t%d\n", C_idx);
+  //printf("D_idx\t:\t%d\n", D_idx);
+  //printf("E_idx\t:\t%d\n", E_idx);
 
-    B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    B[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    B[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+  if (B_idx == -1 || C_idx == -1 || D_idx == -1 || E_idx == -1) return 0;
 
-    C[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    C[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    C[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    C[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
-
-    D[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    D[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    D[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    D[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
-
-    E[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
-    E[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
-    E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
-    E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+  // THIS FOR LOOP NEEDS REVISION (is munmap((void *) addr, size_t length) relieasing the hugepage as expected?)
+  for (i = 0; i < 128; ++i) {
+      //printf("i\t:\t%d\n", i);
+      if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != NULL) {
+          munmap(tmp[i], MB(2));
+      }
+  }
 
 
-    //if ( ((cache_slice_pattern[monline_cache_slice][3] << 17) + cache_line_check_offset + KB(32)) < MB(2) ) {
-    //    B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    B[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    B[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
 
-    //    C[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    C[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    C[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    C[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+  //B = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+  //C = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
 
-    //    D[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    D[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    D[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    D[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+  *start = (Node*) malloc(sizeof(Node));
+  (**start).p = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
+  Node *next = (Node*) malloc(sizeof(Node));
+  (**start).forward = next;
+  next->backward = *start;
+  next->p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  next->forward = (Node*) malloc(sizeof(Node));
+  next->forward->backward = next;
+  next = next->forward;
+  next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  next->forward = *start;
+  (**start).backward = next;
 
-    //    E[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    E[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
-    //    E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+  B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  B[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  B[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+
+  C[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  C[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  C[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  C[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+
+  D[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  D[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  D[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  D[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+
+  E[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+  E[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+  E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+  E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
 
 
-    //    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8;
-    //} else {
-    //    B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    B[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    B[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+  if ( ((cache_slice_pattern[monline_cache_slice][3] << 17) + cache_line_check_offset + KB(32)) < MB(2) ) {
+    B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    B[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    B[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
 
-    //    C[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    C[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    C[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    C[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
 
-    //    D[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    D[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    D[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    D[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
 
-    //    E[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    E[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-    //    E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
-
-    //    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
-    //}
-    printf("Address B: %lx\n", vtop((uintptr_t)B));
-    printf("Address C: %lx\n", vtop((uintptr_t)C));
-    printf("Address D: %lx\n", vtop((uintptr_t)D));
-    printf("Address E: %lx\n", vtop((uintptr_t)E));
-    printf("START: %lx\n", vtop((uintptr_t)(**start).p));
-    printf("Cache slice %i\n", monline_cache_slice);
+    E[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    E[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
+    E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
 
 
-    //*init_prime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
+    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8;
+  } else {
+    B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    B[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    B[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
 
-    return 1;
+    C[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(C + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    C[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+
+    D[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    D[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+
+    E[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    E[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+    E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
+
+    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
+  }
+  printf("Address B: %lx\n", vtop((uintptr_t)B));
+  printf("Address C: %lx\n", vtop((uintptr_t)C));
+  printf("Address D: %lx\n", vtop((uintptr_t)D));
+  printf("Address E: %lx\n", vtop((uintptr_t)E));
+  printf("START: %lx\n", vtop((uintptr_t)(**start).p));
+  printf("Cache slice %i\n", monline_cache_slice);
+
+
+  //*init_prime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
+
+  return 1;
 }
 
 void haswell_i7_4600m_prime(volatile char **tmp1) {
@@ -349,9 +350,8 @@ void haswell_i7_4600m_prime(volatile char **tmp1) {
     tmp1 = (volatile char **)*tmp1;
 }
 
-void haswell_i7_4600m_reprime() {
+void haswell_i7_4600m_reprime(volatile char **tmp1) {
     //printf("haswell_i7_4600m_reprime\n");
-    volatile char **tmp1 = init_reprime;
     tmp1 = (volatile char **)*tmp1;
     tmp1 = (volatile char **)*tmp1;
     tmp1 = (volatile char **)*tmp1;
@@ -512,11 +512,13 @@ int main(int argc, char* argv[]) {
   //m1 = (uintptr_t) malloc(sizeof(uint32_t));
   //m2 = (uintptr_t) malloc(sizeof(uint32_t));
   Node *s1, *s2;
-  if (!haswell_i7_4600m_setup(m2, &s2)) {
+  TYPE_PTR reprime_s1;
+  TYPE_PTR reprime_s2;
+  if (!haswell_i7_4600m_setup(m2, &s2, &reprime_s2)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
-  if (!haswell_i7_4600m_setup(m1, &s1)) {
+  if (!haswell_i7_4600m_setup(m1, &s1, &reprime_s1)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
@@ -529,13 +531,13 @@ int main(int argc, char* argv[]) {
     //p1_time = haswell_i7_4600m_probe(s1);
     //t1.push_back(p1_time);
 
-    haswell_i7_4600m_prime(s1->p); //return 0;
-    haswell_i7_4600m_prime(s2->p); //return 0;
-    //haswell_i7_4600m_reprime(); //return 0;
-
+    haswell_i7_4600m_prime(s1->p);
+    haswell_i7_4600m_reprime(reprime_s1);
     p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
     t1.push_back(p1_time_reverse);
 
+    haswell_i7_4600m_prime(s2->p);
+    haswell_i7_4600m_reprime(reprime_s2);
     p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
     t2.push_back(p2_time_reverse);
   }
