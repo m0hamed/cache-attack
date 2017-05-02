@@ -529,6 +529,6 @@ int main(int argc, char* argv[]) {
     p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
     t1.push_back(p1_time_reverse);
   }
-  outputCSVLine("t1", t1, "data.csv", ios::trunc);
-  outputCSVLine("t2", t2, "data.csv", ios::app);
+  outputCSVLine("t1", t1, argv[1], ios::trunc);
+  outputCSVLine("t2", t2, argv[1], ios::app);
 }
