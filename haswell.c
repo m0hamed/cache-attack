@@ -325,10 +325,10 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
 
     *init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
   }
-  printf("Address B: %lx\n", vtop((uintptr_t)B));
-  printf("Address C: %lx\n", vtop((uintptr_t)C));
-  printf("Address D: %lx\n", vtop((uintptr_t)D));
-  printf("Address E: %lx\n", vtop((uintptr_t)E));
+  printf("Address B: %lx (%lx)\n", (uintptr_t)B, vtop((uintptr_t)B));
+  printf("Address C: %lx (%lx)\n", (uintptr_t)C, vtop((uintptr_t)C));
+  printf("Address D: %lx (%lx)\n", (uintptr_t)D, vtop((uintptr_t)D));
+  printf("Address E: %lx (%lx)\n", (uintptr_t)E, vtop((uintptr_t)E));
   printf("START: %lx\n", vtop((uintptr_t)(**start).p));
   printf("Cache slice %i\n", monline_cache_slice);
 
