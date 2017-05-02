@@ -25,10 +25,10 @@ void haswell_i7_4600m_prime();
 void haswell_i7_4600m_reprime();
 unsigned long int haswell_i7_4600m_probe();
 
-unsigned int cycles_low_start;
-unsigned int cycles_high_start;
-unsigned int cycles_low_stop;
-unsigned int cycles_high_stop;
+uint32_t cycles_low_start;
+uint32_t cycles_high_start;
+uint32_t cycles_low_stop;
+uint32_t cycles_high_stop;
 
 
 unsigned long int get_global_timestamp_start(void);

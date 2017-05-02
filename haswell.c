@@ -78,7 +78,6 @@ int haswell_i7_4600m_cache_slice_alg(uintptr_t i_addr) {
 
 
 int haswell_i7_4600m_cache_slice_from_virt(void* addr) {
-    unsigned long int x = ((unsigned long int*)addr)[0];
     return haswell_i7_4600m_cache_slice_alg(vtop((uintptr_t)addr));
 }
 // Ivy Bridge i7-3770 FUNCTIONS
@@ -89,7 +88,6 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
     //printf("cache line offset");
     //printPtr2bin((void *)cache_line_check_offset);
     size_t mem_length = (size_t)MB(2);
-    uint64_t x = 0;
     int i = 0;
     //int mem_length_char = ((int)mem_length/sizeof(char));
     //int mem_length_ptr = (int)mem_length/sizeof(void *);
@@ -180,16 +178,6 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
 
     //B = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
     //C = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-
-    // check if memory was properly allocated
-
-    x += (unsigned long int)B[MB(0)];
-    x += (unsigned long int)C[MB(0)];
-    x += (unsigned long int)D[MB(0)];
-    x += (unsigned long int)E[MB(0)];
-
-    //printf("B : %p\n", (void *)get_pfn(B));
-    //printf("C : %p\n", (void *)get_pfn(C));
 
     *start = (Node*) malloc(sizeof(Node));
     (**start).p = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
@@ -323,11 +311,11 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
 
     //    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
     //}
-    printf("Address B: %llx\n", vtop((uintptr_t)B));
-    printf("Address C: %llx\n", vtop((uintptr_t)C));
-    printf("Address D: %llx\n", vtop((uintptr_t)D));
-    printf("Address E: %llx\n", vtop((uintptr_t)E));
-    printf("START: %llx\n", vtop((uintptr_t)(**start).p));
+    printf("Address B: %lx\n", vtop((uintptr_t)B));
+    printf("Address C: %lx\n", vtop((uintptr_t)C));
+    printf("Address D: %lx\n", vtop((uintptr_t)D));
+    printf("Address E: %lx\n", vtop((uintptr_t)E));
+    printf("START: %lx\n", vtop((uintptr_t)(**start).p));
     printf("Cache slice %i\n", monline_cache_slice);
 
 
@@ -389,37 +377,37 @@ uint64_t haswell_i7_4600m_probe(Node* start) {
     //unsigned long int begin2, end2;
     //volatile char **tmp1 = init_prime;
     TIMESTAMP_START;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     //tmp1 = (volatile char **)*tmp1;
     //tmp1 = (volatile char **)*tmp1;
     //tmp1 = (volatile char **)*tmp1;
@@ -455,37 +443,37 @@ uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     //unsigned long int begin2, end2;
     //volatile char **tmp1 = init_prime_reverse;
     TIMESTAMP_START;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
-    __asm volatile ("movq %0, %%rcx" : :"m"(*(start->p)));
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     TIMESTAMP_STOP;
     begin = get_global_timestamp_start();
     end = get_global_timestamp_stop();
@@ -517,10 +505,10 @@ int main(int argc, char* argv[]) {
   uintptr_t m1, m2;
   printf("Please enter the first line to monitor:\n");
   scanf("%lx", &m1);
-  printf("Monitoring %llx:\n", m1);
+  printf("Monitoring %lx:\n", m1);
   printf("Please enter the second line to monitor:\n");
   scanf("%lx", &m2);
-  printf("Monitoring %llx:\n", m2);
+  printf("Monitoring %lx:\n", m2);
   //m1 = (uintptr_t) malloc(sizeof(uint32_t));
   //m2 = (uintptr_t) malloc(sizeof(uint32_t));
   Node *s1, *s2;
