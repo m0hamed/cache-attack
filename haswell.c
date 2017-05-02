@@ -503,11 +503,11 @@ int main(int argc, char* argv[]) {
   //m1 = (uintptr_t) malloc(sizeof(uint32_t));
   //m2 = (uintptr_t) malloc(sizeof(uint32_t));
   Node *s1, *s2;
-  if (!haswell_i7_4600m_setup(m1, &s1)) {
+  if (!haswell_i7_4600m_setup(m2, &s2)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
-  if (!haswell_i7_4600m_setup(m2, &s2)) {
+  if (!haswell_i7_4600m_setup(m1, &s1)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
