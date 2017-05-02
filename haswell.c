@@ -131,8 +131,9 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
 
     for (i = 0; i < 128; ++i) {
         tmp[i] = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-        //printf("haswell_i7_4600m_cache_slice_from_virt(tmp[i])\t:\t%d\n", haswell_i7_4600m_cache_slice_from_virt(tmp[i]));
-        //x += (unsigned long int)(*((unsigned int)tmp[i]));
+        if (tmp[i] == MAP_FAILED) {
+          return 0;
+        }
         if (haswell_i7_4600m_cache_slice_from_virt(tmp[i]) == monline_cache_slice) {     //monline_cache_slice
             if (B_idx == -1) {
                 B = (volatile char **)tmp[i];
@@ -233,6 +234,22 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
     next->forward->backward = next;
     next = next->forward;
     next->p = (volatile char **)(D + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
+    next->forward = (Node*) malloc(sizeof(Node));
+    next->forward->backward = next;
+    next = next->forward;
+    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
+    next->forward = (Node*) malloc(sizeof(Node));
+    next->forward->backward = next;
+    next = next->forward;
+    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8);
+    next->forward = (Node*) malloc(sizeof(Node));
+    next->forward->backward = next;
+    next = next->forward;
+    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8);
+    next->forward = (Node*) malloc(sizeof(Node));
+    next->forward->backward = next;
+    next = next->forward;
+    next->p = (volatile char **)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8);
     next->forward = *start;
     (**start).backward = next;
 
