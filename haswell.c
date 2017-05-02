@@ -519,6 +519,10 @@ int main(int argc, char* argv[]) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
+  if (!haswell_i7_4600m_setup(m1, &s1, &reprime_s1)) {
+      printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
+      return 0;
+  }
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
   REPEAT_FOR(1000ULL*1000*1000) {
