@@ -308,6 +308,7 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
     printf("Address D: %llx\n", vtop((uintptr_t)D));
     printf("Address E: %llx\n", vtop((uintptr_t)E));
     printf("START: %llx\n", vtop((uintptr_t)(**start).p));
+    printf("Cache slice %i\n", monline_cache_slice);
 
 
     //*init_prime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
@@ -511,23 +512,24 @@ int main(int argc, char* argv[]) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
-  haswell_i7_4600m_prime(s1->p); //return 0;
-  haswell_i7_4600m_prime(s2->p); //return 0;
   //haswell_i7_4600m_reprime(); //return 0;
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
   REPEAT_FOR(1000ULL*1000*1000) {
-    p2_time = haswell_i7_4600m_probe(s2);
-    t2.push_back(p2_time);
+    //p2_time = haswell_i7_4600m_probe(s2);
+    //t2.push_back(p2_time);
 
-    p1_time = haswell_i7_4600m_probe(s1);
-    t1.push_back(p1_time);
+    //p1_time = haswell_i7_4600m_probe(s1);
+    //t1.push_back(p1_time);
 
-    p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
-    t2.push_back(p2_time_reverse);
+    haswell_i7_4600m_prime(s1->p); //return 0;
+    haswell_i7_4600m_prime(s2->p); //return 0;
 
     p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
     t1.push_back(p1_time_reverse);
+
+    p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
+    t2.push_back(p2_time_reverse);
   }
   outputCSVLine("t1", t1, argv[1], ios::trunc);
   outputCSVLine("t2", t2, argv[1], ios::app);
