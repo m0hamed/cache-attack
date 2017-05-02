@@ -68,7 +68,7 @@ int haswell_i7_4600m_cache_slice_alg(uintptr_t i_addr) {
     // Xeon & Core (4 core - from bit 17 and above)
     int bit0 = ((i_addr & 0x000020000) >> 17) ^ ((i_addr & 0x000040000) >> 18) ^ ((i_addr & 0x000100000) >> 20) ^ ((i_addr & 0x000400000) >> 22)
              ^ ((i_addr & 0x001000000) >> 24) ^ ((i_addr & 0x002000000) >> 25) ^ ((i_addr & 0x004000000) >> 26) ^ ((i_addr & 0x008000000) >> 27)
-             ^ ((i_addr & 0x010000000) >> 28) ^ ((i_addr & 0x040000000) >> 30) ^ ((i_addr & 0x100000000) >> 32) ^ ((i_addr & 0x200000000) >> 33);
+             ^ ((i_addr & 0x010000000) >> 28) ^ ((i_addr & 0x040000000) >> 30) ^ ((i_addr & 0x100000000) >> 32);// ^ ((i_addr & 0x200000000) >> 33);
 
     return bit0;
 }
@@ -303,6 +303,10 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
 
         init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
     }
+    printf("Address B: %llx\n", vtop((uintptr_t)B));
+    printf("Address C: %llx\n", vtop((uintptr_t)C));
+    printf("Address D: %llx\n", vtop((uintptr_t)D));
+    printf("Address E: %llx\n", vtop((uintptr_t)E));
 
 
     //*init_prime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
