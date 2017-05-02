@@ -307,6 +307,7 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
     printf("Address C: %llx\n", vtop((uintptr_t)C));
     printf("Address D: %llx\n", vtop((uintptr_t)D));
     printf("Address E: %llx\n", vtop((uintptr_t)E));
+    printf("START: %llx\n", vtop((uintptr_t)(**start).p));
 
 
     //*init_prime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
