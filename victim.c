@@ -127,42 +127,43 @@ void continousAccess(TYPE_PTR l0, TYPE_PTR l1, uint64_t tMark, uint64_t tPause,
     if(D[i]) {
       uint64_t start = getTime();
       while (!checkElapsed(start, tMark)) {
+        __asm volatile ("movb %0, %%al" : :"m"(*l1));
+        __asm volatile ("movb %0, %%bl" : :"m"(*l1));
         __asm volatile ("movb %0, %%cl" : :"m"(*l1));
+        __asm volatile ("movb %0, %%al" : :"m"(*l1));
+        __asm volatile ("movb %0, %%bl" : :"m"(*l1));
         __asm volatile ("movb %0, %%cl" : :"m"(*l1));
+        __asm volatile ("movb %0, %%al" : :"m"(*l1));
+        __asm volatile ("movb %0, %%bl" : :"m"(*l1));
         __asm volatile ("movb %0, %%cl" : :"m"(*l1));
+        __asm volatile ("movb %0, %%al" : :"m"(*l1));
+        __asm volatile ("movb %0, %%bl" : :"m"(*l1));
         __asm volatile ("movb %0, %%cl" : :"m"(*l1));
+        __asm volatile ("movb %0, %%al" : :"m"(*l1));
+        __asm volatile ("movb %0, %%bl" : :"m"(*l1));
         __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
-        __asm volatile ("movb %0, %%cl" : :"m"(*l1));
+        __asm volatile ("movb %0, %%al" : :"m"(*l1));
       }
       busyWait(tPause);
     } else {
       uint64_t start = getTime();
       while (!checkElapsed(start, tMark)) {
+        __asm volatile ("movb %0, %%al" : :"m"(*l0));
         __asm volatile ("movb %0, %%bl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%cl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%al" : :"m"(*l0));
         __asm volatile ("movb %0, %%bl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%cl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%al" : :"m"(*l0));
         __asm volatile ("movb %0, %%bl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%cl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%al" : :"m"(*l0));
         __asm volatile ("movb %0, %%bl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%cl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%al" : :"m"(*l0));
         __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
-        __asm volatile ("movb %0, %%bl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%cl" : :"m"(*l0));
+        __asm volatile ("movb %0, %%al" : :"m"(*l0));
       }
       busyWait(tPause);
     }
