@@ -12,7 +12,7 @@
 #include <map>
 #include <sys/mman.h>
 
-#define SET_INDEX(x) ((((uintptr_t)x)>>6)&((1<<10)-1))
+#define SET_INDEX(x) ((((uintptr_t)x)>>6)&((1<<11)-1))
 #define CYCLE_LIMIT 180
 #define TYPE uint8_t
 #define TYPE_PTR TYPE*
@@ -21,7 +21,7 @@
 #define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
 #define PROTECTION (PROT_READ | PROT_WRITE)
 #define MESSAGE_SIZE 1024
-#define ADDRESS
+#define ADDRESS 
 
 using namespace std;
 
@@ -51,6 +51,8 @@ uintptr_t vtop(uintptr_t vaddr) {
         }
         fclose(pagemap);
     }
+    printf("original address %xll\n", vaddr);
+    printf("real address %xll\n", paddr);
 
     return paddr;
 }
@@ -188,11 +190,11 @@ void getLines(uint16_t s0, uint16_t s1, TYPE_PTR buffer, int size,
     if (s0_set && s1_set) {
       return;
     }
-    if (!s0_set && SET_INDEX(ADDRESS(i))==s0) {
+    if (!s0_set && SET_INDEX(ADDRESS((uintptr_t)i))==s0) {
       *l0 = i;
       continue;
     }
-    if (!s1_set && SET_INDEX(ADDRESS(i))==s1) {
+    if (!s1_set && SET_INDEX(ADDRESS((uintptr_t)i))==s1) {
       *l1 = i;
       continue;
     }
@@ -210,13 +212,18 @@ int main() {
   TYPE_PTR l1;
   uint16_t s0 = SET_INDEX(ADDRESS((uintptr_t)x+0x900));
   uint16_t s1 = SET_INDEX(ADDRESS((uintptr_t)x+0x1000));
+  vtop((uintptr_t)x+0x900);
+  printf("set index original: %xll\n", (uintptr_t)x+0x900);
+  printf("set index real: %xll\n", vtop((uintptr_t)x+0x900));
+  vtop((uintptr_t)x+0x1000);
+  printf("set index original: %xll\n", (uintptr_t)x+0x1000);
+  printf("set index real: %xll\n", vtop((uintptr_t)x+0x1000));
+  return 0;
   getLines(s0, s1, x, BUFFER_SIZE*sizeof(TYPE), &l0, &l1);
   printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l1));
   printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l0));
   while (true) {
-    continousAccess(l0,l1, 100000, 100, D, MESSAGE_SIZE);
+    continousAccess(l0,l1, 1000*1000, 1000*1000, D, MESSAGE_SIZE);
   }
-  //auto es = getEvictionSet(pc);
-  cout << "next set index" << endl;
 }
 
