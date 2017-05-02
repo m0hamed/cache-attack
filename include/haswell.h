@@ -16,7 +16,7 @@ volatile char **D;
 volatile char **E;
 
 //volatile char **init_prime;
-volatile char **init_reprime;
+//volatile char **init_reprime;
 
 int haswell_i7_4600m_cache_slice_from_virt(void* addr);
 int haswell_i7_4600m_cache_slice_alg(uintptr_t addr);

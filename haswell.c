@@ -83,7 +83,7 @@ int haswell_i7_4600m_cache_slice_from_virt(void* addr) {
 // Ivy Bridge i7-3770 FUNCTIONS
 
 int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
-      TYPE_PTR *init_prime) {
+      TYPE_PTR *init_reprime) {
   //printf("haswell_i7_4600m_setup\n");
   uint64_t cache_line_check_offset = monline & 0x00001FFFF;  // 0001 1111 1111 1111 1111
   //printf("cache line offset");
@@ -288,7 +288,7 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
     E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 + KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8);
 
 
-    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8;
+    *init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 + KB(32)/8;
   } else {
     B[(cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
     B[(cache_slice_pattern[monline_cache_slice][1] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
@@ -310,7 +310,7 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
     E[(cache_slice_pattern[monline_cache_slice][2] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(E + (cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
     E[(cache_slice_pattern[monline_cache_slice][3] << 17)/8 + cache_line_check_offset/8 - KB(32)/8] = (volatile char *)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8);
 
-    init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
+    *init_reprime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8 - KB(32)/8;
   }
   printf("Address B: %lx\n", vtop((uintptr_t)B));
   printf("Address C: %lx\n", vtop((uintptr_t)C));
