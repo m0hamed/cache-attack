@@ -100,7 +100,7 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   int monline_cache_slice = haswell_i7_4600m_cache_slice_alg( monline);
   //printf("monline_cache_slice\t:\t%d\n", monline_cache_slice);
 
-  void *tmp[128];
+  //void *tmp[128];
   int B_idx = -1;
   int C_idx = -1;
   int D_idx = -1;
@@ -134,34 +134,44 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   cache_slice_pattern[3][3] = 0xd;
 
 
-  for (i = 0; i < 128; ++i) tmp[i] = NULL;
+  //for (i = 0; i < 128; ++i) tmp[i] = NULL;
 
   for (i = 0; i < 128; ++i) {
-      tmp[i] = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-      if (tmp[i] == MAP_FAILED) {
+      void * temp = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+      bool mapped = false;
+      if (temp == MAP_FAILED) {
         return false;
       }
-      if (haswell_i7_4600m_cache_slice_from_virt(tmp[i]) == monline_cache_slice) {     //monline_cache_slice
+      if (haswell_i7_4600m_cache_slice_from_virt(temp) == monline_cache_slice) {     //monline_cache_slice
           if (B_idx == -1) {
-              B = (volatile char **)tmp[i];
+              B = (volatile char **)temp;
               B_idx = i;
+              mapped = true;
               continue;
           }
           if (C_idx == -1) {
-              C = (volatile char **)tmp[i];
+              C = (volatile char **)temp;
               C_idx = i;
+              mapped = true;
               continue;
           }
           if (D_idx == -1) {
-              D = (volatile char **)tmp[i];
+              D = (volatile char **)temp;
               D_idx = i;
+              mapped = true;
               continue;
           }
           if (E_idx == -1) {
-              E = (volatile char **)tmp[i];
+              E = (volatile char **)temp;
               E_idx = i;
+              mapped = true;
               break;
           }
+      }
+      if (!mapped) {
+        if(munmap(temp, mem_length) == -1) {
+          printf("Unmapping failed\n");
+        }
       }
   }
 
@@ -173,14 +183,14 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   if (B_idx == -1 || C_idx == -1 || D_idx == -1 || E_idx == -1) return false;
 
   // THIS FOR LOOP NEEDS REVISION (is munmap((void *) addr, size_t length) relieasing the hugepage as expected?)
-  for (i = 0; i < 128; ++i) {
-    //printf("i\t:\t%d\n", i);
-    if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != MAP_FAILED) {
-      if(munmap(tmp[i], MB(2)) == -1) {
-        printf("Unmapping failed\n");
-      }
-    }
-  }
+  //for (i = 0; i < 128; ++i) {
+  //  //printf("i\t:\t%d\n", i);
+  //  if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != MAP_FAILED) {
+  //    if(munmap(tmp[i], MB(2)) == -1) {
+  //      printf("Unmapping failed\n");
+  //    }
+  //  }
+  //}
 
 
   *start = (Node*) malloc(sizeof(Node));
@@ -411,22 +421,6 @@ uint64_t haswell_i7_4600m_probe(Node* start) {
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
-    //tmp1 = (volatile char **)*tmp1;
     TIMESTAMP_STOP;
     begin = get_global_timestamp_start();
     end = get_global_timestamp_stop();
