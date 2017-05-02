@@ -7,8 +7,8 @@ CC = g++ -std=c++11
 CFLAGS  = -Wall -g -m64
 CLIBDIR = -L /usr/lib
 
-CHEADER_DIR = -I include/ -I /usr/include/ -I matplotlib-cpp/
-CLIBS   = -lm -lpython2.7
+CHEADER_DIR = -I include/ -I /usr/include/
+CLIBS   = -lm
 
 all: cache
 
