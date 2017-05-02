@@ -175,8 +175,8 @@ int BUFFER_SIZE = 3*1024*1024;
 bool* getMessage(int size) {
   bool* message = (bool*) malloc(size*sizeof(bool));
   for (int i=0; i<size; i++) {
-    //message[i] = i%2==0;
-    message[i] = true;
+    message[i] = i%2==0;
+    //message[i] = true;
   }
   return message;
 }
