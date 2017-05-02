@@ -491,7 +491,9 @@ int main(int argc, char* argv[]) {
   uintptr_t m1, m2;
   printf("Please enter the first line to monitor:\n");
   scanf("%lx", &m1);
+  printf("Monitoring %llx:\n", m1);
   printf("Please enter the second line to monitor:\n");
+  printf("Monitoring %llx:\n", m2);
   scanf("%lx", &m2);
   //m1 = (uintptr_t) malloc(sizeof(uint32_t));
   //m2 = (uintptr_t) malloc(sizeof(uint32_t));
@@ -510,14 +512,17 @@ int main(int argc, char* argv[]) {
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
   REPEAT_FOR(1000ULL*1000*1000) {
-    p1_time = haswell_i7_4600m_probe(s1);
-    t1.push_back(p1_time);
     p2_time = haswell_i7_4600m_probe(s2);
     t2.push_back(p2_time);
-    p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
-    t1.push_back(p1_time_reverse);
+
+    p1_time = haswell_i7_4600m_probe(s1);
+    t1.push_back(p1_time);
+
     p2_time_reverse = haswell_i7_4600m_reverse_probe(s2);
     t2.push_back(p2_time_reverse);
+
+    p1_time_reverse = haswell_i7_4600m_reverse_probe(s1);
+    t1.push_back(p1_time_reverse);
   }
   outputCSVLine("t1", t1, "data.csv", ios::trunc);
   outputCSVLine("t2", t2, "data.csv", ios::app);
