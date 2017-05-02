@@ -85,11 +85,11 @@ int haswell_i7_4600m_cache_slice_from_virt(void* addr) {
 
 int haswell_i7_4600m_setup(unsigned long int monline, Node** start) {
     //printf("haswell_i7_4600m_setup\n");
-    unsigned long int cache_line_check_offset = monline & 0x00001FFFF;  // 0001 1111 1111 1111 1111
+    uint64_t cache_line_check_offset = monline & 0x00001FFFF;  // 0001 1111 1111 1111 1111
     //printf("cache line offset");
     //printPtr2bin((void *)cache_line_check_offset);
     size_t mem_length = (size_t)MB(2);
-    unsigned long int x = 0;
+    uint64_t x = 0;
     int i = 0;
     //int mem_length_char = ((int)mem_length/sizeof(char));
     //int mem_length_ptr = (int)mem_length/sizeof(void *);
@@ -385,7 +385,7 @@ void haswell_i7_4600m_reprime() {
 uint64_t haswell_i7_4600m_probe(Node* start) {
     //printf("haswell_i7_4600m_probe\n");
     // PROBE & MEASURE
-    unsigned long int begin, end;
+    uint64_t begin, end;
     //unsigned long int begin2, end2;
     //volatile char **tmp1 = init_prime;
     TIMESTAMP_START;
@@ -451,7 +451,7 @@ uint64_t haswell_i7_4600m_probe(Node* start) {
 uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     //printf("haswell_i7_4600m_probe\n");
     // PROBE & MEASURE
-    unsigned long int begin, end;
+    uint64_t begin, end;
     //unsigned long int begin2, end2;
     //volatile char **tmp1 = init_prime_reverse;
     TIMESTAMP_START;
@@ -492,12 +492,12 @@ uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     return (end-begin);//-(end2-begin2);
 }
 
-unsigned long int get_global_timestamp_start(void) {
-	return ((unsigned long int)cycles_high_start << 32) | cycles_low_start;
+uint64_t get_global_timestamp_start(void) {
+	return ((uint64_t)cycles_high_start << 32) | cycles_low_start;
 }
 
-unsigned long int get_global_timestamp_stop(void) {
-	return ((unsigned long int)cycles_high_stop << 32) | cycles_low_stop;
+uint64_t get_global_timestamp_stop(void) {
+	return ((uint64_t)cycles_high_stop << 32) | cycles_low_stop;
 }
 
 template<typename T>

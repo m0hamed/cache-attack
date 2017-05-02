@@ -3,7 +3,8 @@ import sys
 from scipy.signal import butter, lfilter, freqz, medfilt
 
 def filter(data):
-  return medfilt(data, kernel_size=9)
+  return data
+  return medfilt(data, kernel_size=3)
   b, a = butter(0, 0.0001, 'low', analog=False)
   return lfilter(b, a, data)
 
