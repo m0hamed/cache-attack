@@ -82,7 +82,7 @@ int haswell_i7_4600m_cache_slice_from_virt(void* addr) {
 }
 // Ivy Bridge i7-3770 FUNCTIONS
 
-int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
+bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
       TYPE_PTR *init_reprime) {
   //printf("haswell_i7_4600m_setup\n");
   uint64_t cache_line_check_offset = monline & 0x00001FFFF;  // 0001 1111 1111 1111 1111
@@ -105,6 +105,11 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   int C_idx = -1;
   int D_idx = -1;
   int E_idx = -1;
+  volatile char **B;
+  volatile char **C;
+  volatile char **D;
+  volatile char **E;
+
 
   int cache_slice_pattern[4][4];
 
@@ -134,7 +139,7 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   for (i = 0; i < 128; ++i) {
       tmp[i] = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
       if (tmp[i] == MAP_FAILED) {
-        return 0;
+        return false;
       }
       if (haswell_i7_4600m_cache_slice_from_virt(tmp[i]) == monline_cache_slice) {     //monline_cache_slice
           if (B_idx == -1) {
@@ -160,28 +165,26 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
       }
   }
 
-  //printf("B_idx\t:\t%d\n", B_idx);
-  //printf("C_idx\t:\t%d\n", C_idx);
-  //printf("D_idx\t:\t%d\n", D_idx);
-  //printf("E_idx\t:\t%d\n", E_idx);
+  printf("B_idx\t:\t%d\n", B_idx);
+  printf("C_idx\t:\t%d\n", C_idx);
+  printf("D_idx\t:\t%d\n", D_idx);
+  printf("E_idx\t:\t%d\n", E_idx);
 
-  if (B_idx == -1 || C_idx == -1 || D_idx == -1 || E_idx == -1) return 0;
+  if (B_idx == -1 || C_idx == -1 || D_idx == -1 || E_idx == -1) return false;
 
   // THIS FOR LOOP NEEDS REVISION (is munmap((void *) addr, size_t length) relieasing the hugepage as expected?)
   for (i = 0; i < 128; ++i) {
-      //printf("i\t:\t%d\n", i);
-      if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != NULL) {
-          munmap(tmp[i], MB(2));
+    //printf("i\t:\t%d\n", i);
+    if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != MAP_FAILED) {
+      if(munmap(tmp[i], MB(2)) == -1) {
+        printf("Unmapping failed\n");
       }
+    }
   }
 
 
-
-  //B = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-  //C = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-
   *start = (Node*) malloc(sizeof(Node));
-  (**start).p = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
+  (**start).p = (volatile char **)(B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8);
   Node *next = (Node*) malloc(sizeof(Node));
   (**start).forward = next;
   next->backward = *start;
@@ -322,7 +325,7 @@ int haswell_i7_4600m_setup(unsigned long int monline, Node** start,
 
   //*init_prime = B + (cache_slice_pattern[monline_cache_slice][0] << 17)/8 + cache_line_check_offset/8;
 
-  return 1;
+  return true;
 }
 
 void haswell_i7_4600m_prime(volatile char **tmp1) {

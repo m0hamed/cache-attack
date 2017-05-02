@@ -10,17 +10,12 @@ typedef struct node {
 } Node;
 
 
-volatile char **B;
-volatile char **C;
-volatile char **D;
-volatile char **E;
-
 //volatile char **init_prime;
 //volatile char **init_reprime;
 
 int haswell_i7_4600m_cache_slice_from_virt(void* addr);
 int haswell_i7_4600m_cache_slice_alg(uintptr_t addr);
-int haswell_i7_4600m_setup(unsigned long int monline);
+bool haswell_i7_4600m_setup(unsigned long int monline);
 void haswell_i7_4600m_prime(volatile char **prime);
 void haswell_i7_4600m_reprime(volatile char **reprime);
 uint64_t haswell_i7_4600m_probe(Node* start);
