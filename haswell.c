@@ -514,11 +514,11 @@ int main(int argc, char* argv[]) {
   Node *s1, *s2;
   TYPE_PTR reprime_s1;
   TYPE_PTR reprime_s2;
-  if (!haswell_i7_4600m_setup(m2, &s2, &reprime_s2)) {
+  if (!haswell_i7_4600m_setup(m1, &s1, &reprime_s1)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
-  if (!haswell_i7_4600m_setup(m1, &s1, &reprime_s1)) {
+  if (!haswell_i7_4600m_setup(m2, &s2, &reprime_s2)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
