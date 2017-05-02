@@ -213,8 +213,8 @@ int main() {
   uint16_t s0 = SET_INDEX(ADDRESS((uintptr_t)x+0x900));
   uint16_t s1 = SET_INDEX(ADDRESS((uintptr_t)x+0x1000));
   getLines(s0, s1, x, BUFFER_SIZE*sizeof(TYPE), &l0, &l1);
-  printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l0));
   printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l1));
+  printf("\n%016" PRIXPTR " : \n", vtop((uintptr_t)l0));
   while (true) {
     continousAccess(l0,l1, 1000*1000, 1000*1000, D, MESSAGE_SIZE);
   }
