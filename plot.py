@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import sys
-from scipy.signal import butter, lfilter, freqz
+from scipy.signal import butter, lfilter, freqz, medfilt
 
 def filter(data):
-  b, a = butter(3, 0.1, 'low', analog=False)
+  return medfilt(data, kernel_size=9)
+  b, a = butter(0, 0.0001, 'low', analog=False)
   return lfilter(b, a, data)
 
 def check(l):
