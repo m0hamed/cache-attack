@@ -7,6 +7,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <errno.h>
+
 
 using namespace std;
 
@@ -71,7 +73,7 @@ int haswell_i7_4600m_cache_slice_alg(uintptr_t i_addr) {
              ^ ((i_addr & 0x001000000) >> 24) ^ ((i_addr & 0x002000000) >> 25)
              ^ ((i_addr & 0x004000000) >> 26) ^ ((i_addr & 0x008000000) >> 27)
              ^ ((i_addr & 0x010000000) >> 28) ^ ((i_addr & 0x040000000) >> 30)
-             ^ ((i_addr & 0x100000000) >> 32) ^ ((i_addr & 0x200000000) >> 33);
+             ^ ((i_addr & 0x100000000) >> 32);// ^ ((i_addr & 0x200000000) >> 33);
 
     return bit0;
 }
@@ -97,9 +99,9 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
 // p18 ⊕ p19 ⊕ p21 ⊕ p23 ⊕ p25 ⊕ p27 ⊕ p29 ⊕ p30 ⊕ p31 ⊕ p32
 
   int monline_cache_slice = haswell_i7_4600m_cache_slice_alg( monline);
-  //printf("monline_cache_slice\t:\t%d\n", monline_cache_slice);
+  printf("monline_cache_slice\t:\t%d\n", monline_cache_slice);
 
-  //void *tmp[128];
+  void *tmp[128];
   int B_idx = -1;
   int C_idx = -1;
   int D_idx = -1;
@@ -133,44 +135,37 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   cache_slice_pattern[3][3] = 0xd;
 
 
-  //for (i = 0; i < 128; ++i) tmp[i] = NULL;
+  for (int i = 0; i < 128; ++i) tmp[i] = NULL;
 
   for (int i = 0; i < 128; ++i) {
-      void * temp = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-      bool mapped = false;
-      if (temp == MAP_FAILED) {
+      tmp[i] = mmap(NULL, mem_length, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+      *((int*)tmp[i]) = 1;
+      printf("*%d : ", haswell_i7_4600m_cache_slice_from_virt(tmp[i]));
+      printPtr2bin((void*)(vtop((uintptr_t)tmp[i])));
+      if (tmp[i] == MAP_FAILED) {
         return false;
       }
-      if (haswell_i7_4600m_cache_slice_from_virt(temp) == monline_cache_slice) {     //monline_cache_slice
+      if (haswell_i7_4600m_cache_slice_from_virt(tmp[i]) == 0) {     //monline_cache_slice
           if (B_idx == -1) {
-              B = (volatile char **)temp;
+              B = (volatile char **)tmp[i];
               B_idx = i;
-              mapped = true;
               continue;
           }
           if (C_idx == -1) {
-              C = (volatile char **)temp;
+              C = (volatile char **)tmp[i];
               C_idx = i;
-              mapped = true;
               continue;
           }
           if (D_idx == -1) {
-              D = (volatile char **)temp;
+              D = (volatile char **)tmp[i];
               D_idx = i;
-              mapped = true;
               continue;
           }
           if (E_idx == -1) {
-              E = (volatile char **)temp;
+              E = (volatile char **)tmp[i];
               E_idx = i;
-              mapped = true;
               break;
           }
-      }
-      if (!mapped) {
-        if(munmap(temp, mem_length) == -1) {
-          printf("Unmapping failed\n");
-        }
       }
   }
 
@@ -182,14 +177,14 @@ bool haswell_i7_4600m_setup(unsigned long int monline, Node** start,
   if (B_idx == -1 || C_idx == -1 || D_idx == -1 || E_idx == -1) return false;
 
   // THIS FOR LOOP NEEDS REVISION (is munmap((void *) addr, size_t length) relieasing the hugepage as expected?)
-  //for (i = 0; i < 128; ++i) {
-  //  //printf("i\t:\t%d\n", i);
-  //  if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != MAP_FAILED) {
-  //    if(munmap(tmp[i], MB(2)) == -1) {
-  //      printf("Unmapping failed\n");
-  //    }
-  //  }
-  //}
+  for (int i = 0; i < 128; ++i) {
+    //printf("i\t:\t%d\n", i);
+    if (i != B_idx && i != C_idx && i != D_idx && i != E_idx && tmp[i] != MAP_FAILED && tmp[i] != NULL) {
+      if(munmap(tmp[i], MB(2)) == -1) {
+        printf("Unmapping failed at index %i: %i\n", i, errno);
+      }
+    }
+  }
 
 
   *start = (Node*) malloc(sizeof(Node));
@@ -440,104 +435,36 @@ inline uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     //volatile char **tmp1 = init_prime_reverse;
     TIMESTAMP_START;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->p));
-    printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->forward->p)));
-    printPtr2bin((void*)(vtop((uintptr_t)*(start->forward->p))));
-    printf("    ");
-    printPtr2bin((void*)*(start->forward->p));
     TIMESTAMP_STOP;
     begin = get_global_timestamp_start();
     end = get_global_timestamp_stop();
@@ -573,8 +500,8 @@ int main(int argc, char* argv[]) {
   printf("Please enter the second line to monitor:\n");
   scanf("%lx", &m2);
   printf("Monitoring %lx:\n", m2);
-  //m1 = (uintptr_t) malloc(sizeof(uint32_t));
-  //m2 = (uintptr_t) malloc(sizeof(uint32_t));
+  //m1 = 0x20C400900;
+  //m2 = 0x20C401000;
   Node *s1, *s2;
   TYPE_PTR reprime_s1;
   TYPE_PTR reprime_s2;
@@ -599,12 +526,10 @@ int main(int argc, char* argv[]) {
     haswell_i7_4600m_reprime(reprime_s1);
     p1_time_reverse = haswell_i7_4600m_reverse_probe(s1->backward);
     t1.push_back(p1_time_reverse);
-    printf("\n\n");
 
     haswell_i7_4600m_prime(s2->p);
     haswell_i7_4600m_reprime(reprime_s2);
     p2_time_reverse = haswell_i7_4600m_reverse_probe(s2->backward);
-    return 0;
     t2.push_back(p2_time_reverse);
   }
   outputCSVLine("s1", t1, argv[1], ios::trunc);
