@@ -73,7 +73,7 @@ int haswell_i7_4600m_cache_slice_alg(uintptr_t i_addr) {
              ^ ((i_addr & 0x001000000) >> 24) ^ ((i_addr & 0x002000000) >> 25)
              ^ ((i_addr & 0x004000000) >> 26) ^ ((i_addr & 0x008000000) >> 27)
              ^ ((i_addr & 0x010000000) >> 28) ^ ((i_addr & 0x040000000) >> 30)
-             ^ ((i_addr & 0x100000000) >> 32);// ^ ((i_addr & 0x200000000) >> 33);
+             ^ ((i_addr & 0x100000000) >> 32) ^ ((i_addr & 0x200000000) >> 33);
 
     return bit0;
 }
@@ -435,6 +435,84 @@ inline uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     //volatile char **tmp1 = init_prime_reverse;
     TIMESTAMP_START;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    //printf("%d : ", haswell_i7_4600m_cache_slice_from_virt((void*)*(start->p)));
+    //printPtr2bin((void*)(vtop((uintptr_t)*(start->p))));
+    TIMESTAMP_STOP;
+    begin = get_global_timestamp_start();
+    end = get_global_timestamp_stop();
+    return (end-begin);//-(end2-begin2);
+}
+
+inline uint64_t haswell_i7_4600m_probe_extra(Node* start) {
+    //printf("haswell_i7_4600m_probe\n");
+    // PROBE & MEASURE
+    uint64_t begin, end;
+    //unsigned long int begin2, end2;
+    //volatile char **tmp1 = init_prime;
+    TIMESTAMP_START;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
+    start = start->forward;
+    __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
     __asm volatile ("addq %0, %%rcx" : :"m"(*(start->p)));
     start = start->forward;
@@ -468,7 +546,25 @@ inline uint64_t haswell_i7_4600m_reverse_probe(Node* start) {
     TIMESTAMP_STOP;
     begin = get_global_timestamp_start();
     end = get_global_timestamp_stop();
+/*
+    TIMESTAMP_START;
+    TIMESTAMP_STOP;
+    begin2 = get_global_timestamp_start();
+    end2 = get_global_timestamp_stop();
+*/
     return (end-begin);//-(end2-begin2);
+}
+
+bool testConflicting(Node* start) {
+	uint64_t min_time = 9999999;
+  for(int i=0; i<5; i++) {
+		uint64_t t = haswell_i7_4600m_probe_extra(start);
+		printf("Time for probe + 1: %lu\n", t);
+		if (t < min_time) {
+			min_time = t;
+		}
+  }
+	return min_time > 500;
 }
 
 inline uint64_t get_global_timestamp_start(void) {
@@ -509,10 +605,15 @@ int main(int argc, char* argv[]) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
+  haswell_i7_4600m_reverse_probe(s1->backward);
+  testConflicting(s1);
   if (!haswell_i7_4600m_setup(m2, &s2, &reprime_s2)) {
       printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
       return 0;
   }
+  haswell_i7_4600m_reverse_probe(s2->backward);
+  testConflicting(s2);
+
   vector<uint64_t> t1,t2;
   uint64_t p1_time, p2_time, p1_time_reverse, p2_time_reverse;
   REPEAT_FOR(1000ULL*1000*1000) {
