@@ -590,9 +590,10 @@ void outputCSVLine(const char* label, vector<T> v, const char* filename,
 
 template<typename T>
 void outputMultiCSV(vector<vector<T>>vv, const char* filename) {
-  for (size_t i = 0; i != vv.size(); ++i) {
+  outputCSVLine("line 0", vv[0], filename, ios::trunc);
+  for (size_t i = 1; i < vv.size(); ++i) {
     string name = "line ";
-    name += i;
+    name += to_string(i);
     outputCSVLine(name.c_str(), vv[i], filename, ios::app);
   }
 }
