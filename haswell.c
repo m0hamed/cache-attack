@@ -41,7 +41,7 @@ uintptr_t vtop(uintptr_t vaddr) {
 
     // https://www.kernel.org/doc/Documentation/vm/pagemap.txt
     if ((pagemap = fopen("/proc/self/pagemap", "r"))) {
-        if (lseek(fileno(pagemap), offset, SEEK_SET) == offset) {
+        if ((uint64_t)lseek(fileno(pagemap), offset, SEEK_SET) == offset) {
             if (fread(&e, sizeof(uint64_t), 1, pagemap)) {
                 if (e & (1ULL << 63)) { // page present ?
                     paddr = e & ((1ULL << 54) - 1); // pfn mask
@@ -492,16 +492,54 @@ void outputCSVLine(const char* label, vector<T> v, const char* filename,
   file.close();
 }
 
+template<typename T>
+void outputMultiCSV(vector<vector<T>>vv, const char* filename) {
+  for (size_t i = 0; i != vv.size(); ++i) {
+    string name = "line " + i;
+    outputCSVLine(name.c_str(), vv[i], filename, ios::app);
+  }
+}
+
+vector<vector<uint64_t>> monitorTable(uintptr_t start_address, int table_size, int entry_size) {
+  vector<Node*> lines;
+  vector<vector<uint64_t>> times;
+  TYPE_PTR reprime;
+  for (int i=0; i<table_size; i++) {
+    Node *s;
+    if (!haswell_i7_4600m_setup(start_address + i*entry_size, &s, &reprime)) {
+        printf("[x] Not enough memory could be allocated on required cache-slice, please try again and/or increase hugepages available memory");
+        return times;
+    }
+    lines.push_back(s);
+    times.push_back(vector<uint64_t>());
+  }
+  uint64_t p_time=0,p_time_reverse=0;
+  REPEAT_FOR(1000ULL*1000*1000) {
+    for (size_t i = 0; i != lines.size(); ++i) {
+      p_time = haswell_i7_4600m_probe(lines[i]);
+      times[i].push_back(p_time);
+
+      haswell_i7_4600m_prime(lines[i]->p);
+      p_time_reverse = haswell_i7_4600m_reverse_probe(lines[i]->backward);
+      times[i].push_back(p_time_reverse);
+    }
+  }
+  return times;
+}
+
 int main(int argc, char* argv[]) {
   uintptr_t m1, m2;
-  printf("Please enter the first line to monitor:\n");
+  printf("Please enter the first table line to monitor:\n");
   scanf("%lx", &m1);
   printf("Monitoring %lx:\n", m1);
-  printf("Please enter the second line to monitor:\n");
-  scanf("%lx", &m2);
-  printf("Monitoring %lx:\n", m2);
+  //printf("Please enter the second line to monitor:\n");
+  //scanf("%lx", &m2);
+  //printf("Monitoring %lx:\n", m2);
   //m1 = 0x20C400900;
   //m2 = 0x20C401000;
+  auto vv = monitorTable(m1, 5, 24);
+  outputMultiCSV(vv, argv[1]);
+  return 0;
   Node *s1, *s2;
   TYPE_PTR reprime_s1;
   TYPE_PTR reprime_s2;
